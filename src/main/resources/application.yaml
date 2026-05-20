@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: auth-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ITSoftwareSupport
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      schema: auth_db
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+    properties:
+      hibernate:
+        default_schema: auth_db
+
+    show-sql: true
+
+  flyway:
+    enabled: true
+    schemas: auth_db
+    default-schema: auth_db
+    locations: classpath:db/migration
+
+server:
+  port: 8081
