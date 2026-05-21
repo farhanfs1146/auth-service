@@ -13,19 +13,21 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
+
+    show-sql: true
 
     properties:
       hibernate:
         default_schema: auth_db
-
-    show-sql: true
+        format_sql: true
 
   flyway:
     enabled: true
     schemas: auth_db
     default-schema: auth_db
     locations: classpath:db/migration
+    baseline-on-migrate: true
 
 server:
-  port: 8081
+  port: 9091
