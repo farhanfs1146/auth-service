@@ -51,7 +51,7 @@ public class AuthServiceImpl implements AuthService {
                 .isAccountNonLocked(true)
                 .isAccountNonExpired(true)
                 .isCredentialsNonExpired(true)
-                
+
                 .createdAt(LocalDateTime.now())
                 .createdBy("system")
                 .updatedAt(LocalDateTime.now())
@@ -68,8 +68,14 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse login(LoginRequest request) {
 
+        // check whether the login user is exits with same username & password?
+        if (!userRepository.existsByUsernameAndPasswordHash(request.getUsername(), request.getPassword())) {
+            throw new ValidationException("Invalid username or password");
+        }
+        
         // TEMPORARY LOGIN LOGIC
         // JWT will come later
+
         return AuthResponse.builder()
                 .accessToken("TEMP_ACCESS_TOKEN")
                 .refreshToken("TEMP_REFRESH_TOKEN")

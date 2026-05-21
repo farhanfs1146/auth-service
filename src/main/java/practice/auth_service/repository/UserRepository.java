@@ -1,6 +1,7 @@
 package practice.auth_service.repository;
 
 
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import practice.auth_service.entity.User;
 
@@ -32,4 +33,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Check email already exists
     boolean existsByEmail(String email);
+
+    boolean existsByUsernameAndPasswordHash(String username, String password);
 }
