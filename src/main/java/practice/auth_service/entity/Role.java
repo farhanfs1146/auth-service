@@ -33,11 +33,7 @@ public class Role {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // User role mappings
-//    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
-//    private Set<UserRole> userRoles;
+    @Column(name = "created_by")
+    private String createdBy;
 
-    // Role permission mappings
-//    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
-//    private Set<RolePermission> rolePermissions;
 }

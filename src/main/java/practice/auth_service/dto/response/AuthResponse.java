@@ -23,6 +23,6 @@ public class AuthResponse {
     // Access token expiration
     private LocalDateTime expiresAt;
 
-    // Logged in user details
+    // Logged-in user details
     private UserResponse user;
 }

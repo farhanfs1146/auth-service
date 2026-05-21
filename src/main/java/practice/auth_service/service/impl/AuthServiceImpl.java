@@ -7,8 +7,11 @@ import practice.auth_service.dto.request.RegisterRequest;
 import practice.auth_service.dto.response.AuthResponse;
 import practice.auth_service.dto.response.UserResponse;
 import practice.auth_service.entity.User;
+import practice.auth_service.exception.ValidationException;
 import practice.auth_service.repository.UserRepository;
 import practice.auth_service.service.AuthService;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -19,14 +22,19 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public UserResponse register(RegisterRequest request) {
 
+        // check whether user already exists with same employeeId
+        if (userRepository.findByEmployeeId(request.getEmployeeId()).isPresent()) {
+            throw new ValidationException("User with employeeId " + request.getEmployeeId() + " already exists");
+        }
+
         // Check username already exists
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username already exists");
+            throw new ValidationException("Username already exists");
         }
 
         // Check email already exists
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new ValidationException("Email already exists");
         }
 
         // Create new user entity
@@ -39,31 +47,22 @@ public class AuthServiceImpl implements AuthService {
                 // later we will encrypt using Bcrypt
                 .passwordHash(request.getPassword())
 
-//                .firstName(request.getFirstName())
-//                .lastName(request.getLastName())
-//                .phoneNumber(request.getPhoneNumber())
-
                 .isActive(true)
                 .isAccountNonLocked(true)
                 .isAccountNonExpired(true)
                 .isCredentialsNonExpired(true)
+                
+                .createdAt(LocalDateTime.now())
+                .createdBy("system")
+                .updatedAt(LocalDateTime.now())
+                .updatedBy("system")
 
                 .build();
 
         // Save user
         User savedUser = userRepository.save(user);
-
-        // Return response DTO
-        return UserResponse.builder()
-                .id(savedUser.getId())
-                .employeeId(savedUser.getEmployeeId())
-                .username(savedUser.getUsername())
-                .email(savedUser.getEmail())
-//                .firstName(savedUser.getFirstName())
-//                .lastName(savedUser.getLastName())
-//                .phoneNumber(savedUser.getPhoneNumber())
-                .isActive(savedUser.getIsActive())
-                .build();
+        // return DTO response
+        return mapToResponse(savedUser);
     }
 
     @Override
@@ -71,11 +70,21 @@ public class AuthServiceImpl implements AuthService {
 
         // TEMPORARY LOGIN LOGIC
         // JWT will come later
-
         return AuthResponse.builder()
                 .accessToken("TEMP_ACCESS_TOKEN")
                 .refreshToken("TEMP_REFRESH_TOKEN")
                 .tokenType("Bearer")
+                .build();
+    }
+
+    // helping methods.
+    private UserResponse mapToResponse(User user) {
+        return UserResponse.builder()
+                .id(user.getId())
+                .employeeId(user.getEmployeeId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .isActive(user.getIsActive())
                 .build();
     }
 }

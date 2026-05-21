@@ -15,22 +15,13 @@ public class UserResponse {
     private Long id;
 
     // Employee reference id
-    private String employeeId;
+    private Long employeeId;
 
     // Username
     private String username;
 
     // Email address
     private String email;
-
-    // First name
-    private String firstName;
-
-    // Last name
-    private String lastName;
-
-    // Contact number
-    private String phoneNumber;
 
     // Active status
     private Boolean isActive;

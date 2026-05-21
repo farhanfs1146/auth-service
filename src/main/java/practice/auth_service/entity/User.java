@@ -22,8 +22,8 @@ public class User {
     private Long id;
 
     // Employee reference id
-    @Column(name = "employee_id", unique = true)
-    private String employeeId;
+    @Column(name = "employee_id", nullable = false, unique = true)
+    private Long employeeId;
 
     // Username used for login
     @Column(name = "username", nullable = false, unique = true)
@@ -61,15 +61,14 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "created_by")
+    private String createdBy;
+
     // Last update timestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // User role mappings
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-//    private Set<UserRole> userRoles;
+    @Column(name = "updated_by")
+    private String updatedBy;
 
-    // User refresh tokens
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-//    private Set<RefreshToken> refreshTokens;
 }
