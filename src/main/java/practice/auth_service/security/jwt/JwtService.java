@@ -21,11 +21,11 @@ public class JwtService {
     // Token expiration time
     // 1000 = 1 second
     // 60 * 60 * 1000 = 1 hour
-    // private static final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 60;
+     private static final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 60;
 
     // Token expiration time now
     // for quick testing we can set it to 30 seconds
-    private static final long ACCESS_TOKEN_EXPIRATION = 1000 * 30;
+    // private static final long ACCESS_TOKEN_EXPIRATION = 1000 * 30;
 
     // Generate signing key object
     private Key getSigningKey() {
@@ -137,41 +137,17 @@ public class JwtService {
 
         try {
 
-            String extractedUsername =
-                    extractUsername(token);
-
-            return extractedUsername.equals(username)
-                    && !isTokenExpired(token);
+            String extractedUsername = extractUsername(token);
+            return extractedUsername.equals(username) && !isTokenExpired(token);
 
         } catch (ExpiredJwtException ex) {
-
-            System.out.println(
-                    "JWT token expired"
-            );
-
+            System.out.println("JWT token expired");
         } catch (MalformedJwtException ex) {
-
-            System.out.println(
-                    "Invalid JWT token"
-            );
-
-        } catch (SignatureException ex) {
-
-            System.out.println(
-                    "JWT signature invalid"
-            );
-
+            System.out.println("Invalid JWT token");
         } catch (UnsupportedJwtException ex) {
-
-            System.out.println(
-                    "JWT unsupported"
-            );
-
+            System.out.println("JWT unsupported");
         } catch (IllegalArgumentException ex) {
-
-            System.out.println(
-                    "JWT claims empty"
-            );
+            System.out.println("JWT claims empty");
         }
 
         return false;
@@ -179,18 +155,17 @@ public class JwtService {
 
     private boolean isTokenExpired(String token) {
 
-        Date expirationDate =
-                Jwts.parser()
+        Date expirationDate = Jwts.parser()
 
-                        .verifyWith((SecretKey) getSigningKey())
+                .verifyWith((SecretKey) getSigningKey())
 
-                        .build()
+                .build()
 
-                        .parseSignedClaims(token)
+                .parseSignedClaims(token)
 
-                        .getPayload()
+                .getPayload()
 
-                        .getExpiration();
+                .getExpiration();
 
         return expirationDate.before(new Date());
     }

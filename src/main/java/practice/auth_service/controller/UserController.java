@@ -1,11 +1,13 @@
 package practice.auth_service.controller;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import practice.auth_service.dto.ApiResponse;
+import practice.auth_service.dto.request.UpdatedPasswordRequest;
 import practice.auth_service.dto.response.UserResponse;
 import practice.auth_service.service.UserService;
 
@@ -35,7 +37,7 @@ public class UserController {
     //Controller receives Authentication
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getCurrentUser(
+    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(
             Authentication authentication
     ) {
 
@@ -45,19 +47,50 @@ public class UserController {
         // SecurityContextHolder // which my JWT filter populated earlier.
 
         // Get logged-in username
-        String username =
-                authentication.getName();
-
+        String username = authentication.getName();
         // Get user details
-        UserResponse response =
-                userService.getCurrentUser(username);
+        UserResponse response = userService.getCurrentUser(username);
 
         // WHAT DOES authentication.getName() RETURN?
         // Returns:
         // Currently logged-in username
         // Example: Farhan
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success("Current logged-in user details fetched successfully", response));
+
+                // Flow of this end-point
+                // ************************
+                // What /me Actually Teaches
+                // When the frontend sends:
+
+                // GET /api/v1/users/me
+                //Authorization: Bearer eyJobGciOi...
+
+                // Request
+                //   │
+                //   ▼
+                //JwtAuthenticationFilter
+                //   │
+                //   ▼
+                //Validate JWT
+                //   │
+                //   ▼
+                //Extract username
+                //   │
+                //   ▼
+                //Create Authentication object
+                //   │
+                //   ▼
+                //SecurityContextHolder
+                //   │
+                //   ▼
+                //Controller receives Authentication
+                //   │
+                //   ▼
+                //authentication.getName()
+                //   │
+                //   ▼
+                // Farhan
     }
 
     // WHAT YOU JUST LEARNED
@@ -81,5 +114,14 @@ public class UserController {
     // permissions
     // activity tracking
     // notifications etc.
+
+
+    // change password end-point
+    @PatchMapping("/change-password")
+    public ResponseEntity<ApiResponse<UserResponse>> changePassword(@Valid @RequestBody UpdatedPasswordRequest request, Authentication authentication) {
+        String username = authentication.getName();
+        UserResponse response = userService.changePassword(username, request);
+        return ResponseEntity.ok(ApiResponse.success("New password has been updated successfully", response));
+    }
 
 }

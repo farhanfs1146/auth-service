@@ -27,8 +27,7 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter
-        extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
 
@@ -42,42 +41,27 @@ public class JwtAuthenticationFilter
     ) throws ServletException, IOException {
 
         // Read Authorization header
-        final String authHeader =
-                request.getHeader("Authorization");
+        final String authHeader = request.getHeader("Authorization");
 
         // If header missing OR not Bearer token
-        if (authHeader == null ||
-                !authHeader.startsWith("Bearer ")) {
-
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         // Remove "Bearer " from token
-        String jwtToken =
-                authHeader.substring(7);
+        String jwtToken = authHeader.substring(7);
 
         // Extract username from token
-        String username =
-                jwtService.extractUsername(jwtToken);
+        String username = jwtService.extractUsername(jwtToken);
 
         // If username exists AND user not authenticated yet
-        if (username != null &&
-                SecurityContextHolder
-                        .getContext()
-                        .getAuthentication() == null) {
-
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             // Load user from DB
-            UserDetails userDetails =
-                    userDetailsService
-                            .loadUserByUsername(username);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
             // Validate token
-            if (jwtService.isTokenValid(
-                    jwtToken,
-                    userDetails.getUsername()
-            )) {
-
+            if (jwtService.isTokenValid(jwtToken, userDetails.getUsername())) {
                 // Create authentication object
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(

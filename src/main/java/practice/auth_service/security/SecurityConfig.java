@@ -28,7 +28,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     // Inject AuthenticationEntryPoint
-    private final JwtAuthenticationEntryPoint  jwtAuthenticationEntryPoint;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     // Password encoder bean
     @Bean
@@ -41,7 +41,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                // Disable CSRF
+                // Disable CSRF for APIs (not needed for stateless JWT auth)
                 .csrf(csrf -> csrf.disable())
                 // Stateless session
                 .sessionManagement(session ->
@@ -67,16 +67,12 @@ public class SecurityConfig {
                                 "/api/v1/auth/login"
                         ).permitAll()
 
-                        // Everything else protected
+                        // Everything else protected, means you have to pass Valid JWT token to access other endpoints.
                         .anyRequest().authenticated()
                 )
 
-                // Add JWT filter before Spring auth filter
-                .addFilterBefore(
-                        jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class
-                )
-
+                // Add JWT filter before Spring auth filter.
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 // Optional
                 .httpBasic(Customizer.withDefaults());
 

@@ -126,8 +126,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
         // Create JSON response body
-        Map<String, Object> errorResponse =
-                new HashMap<>();
+        Map<String, Object> errorResponse = new HashMap<>();
 
         errorResponse.put("timestamp", LocalDateTime.now().toString());
 
