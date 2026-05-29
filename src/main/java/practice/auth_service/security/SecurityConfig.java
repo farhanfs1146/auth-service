@@ -17,6 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import practice.auth_service.security.handler.JwtAuthenticationEntryPoint;
 import practice.auth_service.security.jwt.JwtAuthenticationFilter;
 
 @Configuration
@@ -26,6 +27,9 @@ public class SecurityConfig {
     // Inject JWT filter
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    // Inject AuthenticationEntryPoint
+    private final JwtAuthenticationEntryPoint  jwtAuthenticationEntryPoint;
+
     // Password encoder bean
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -34,20 +38,24 @@ public class SecurityConfig {
 
     // Security configuration
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http
-    ) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-
                 // Disable CSRF
                 .csrf(csrf -> csrf.disable())
-
                 // Stateless session
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(
-                                SessionCreationPolicy.STATELESS
-                        )
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+
+                // add here jwt Authentication Entry Point/
+                // WHAT YOU LEARNED
+                // | Concept                     | Meaning                  |
+                // | --------------------------- | ------------------------ |
+                // | AuthenticationEntryPoint    | handles auth failures    |
+                // | Custom security responses   | professional APIs        |
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 )
 
                 // Configure endpoint permissions
