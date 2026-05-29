@@ -1,22 +1,15 @@
 package practice.auth_service.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import jakarta.servlet.ServletException;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import org.springframework.security.core.AuthenticationException;
-
 import org.springframework.security.web.AuthenticationEntryPoint;
-
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-
 import java.time.LocalDateTime;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -130,38 +123,21 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setContentType("application/json");
 
         // Set status code
-        response.setStatus(
-                HttpServletResponse.SC_UNAUTHORIZED
-        );
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
         // Create JSON response body
         Map<String, Object> errorResponse =
                 new HashMap<>();
 
-        errorResponse.put(
-                "timestamp",
-                LocalDateTime.now()
-        );
+        errorResponse.put("timestamp", LocalDateTime.now().toString());
 
-        errorResponse.put(
-                "status",
-                401
-        );
+        errorResponse.put("status", 401);
 
-        errorResponse.put(
-                "error",
-                "Unauthorized"
-        );
+        errorResponse.put("error", "Unauthorized");
 
-        errorResponse.put(
-                "message",
-                authException.getMessage()
-        );
+        errorResponse.put("message", authException.getMessage());
 
-        errorResponse.put(
-                "path",
-                request.getRequestURI()
-        );
+        errorResponse.put("path", request.getRequestURI());
 
         // Convert Java object → JSON
         ObjectMapper mapper =
