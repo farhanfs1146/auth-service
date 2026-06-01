@@ -8,8 +8,12 @@ import org.springframework.web.bind.annotation.*;
 
 import practice.auth_service.dto.ApiResponse;
 import practice.auth_service.dto.request.LoginRequest;
+import practice.auth_service.dto.request.LogoutRequest;
+import practice.auth_service.dto.request.RefreshTokenRequest;
 import practice.auth_service.dto.request.RegisterRequest;
 import practice.auth_service.dto.response.AuthResponse;
+import practice.auth_service.dto.response.LogoutResponse;
+import practice.auth_service.dto.response.RefreshTokenResponse;
 import practice.auth_service.dto.response.UserResponse;
 
 import practice.auth_service.service.AuthService;
@@ -35,9 +39,29 @@ public class AuthController {
 
     // Login API
     @PostMapping("/login")
-    public AuthResponse login(
+    public ResponseEntity<ApiResponse<AuthResponse>> login(
             @Valid @RequestBody LoginRequest request
     ) {
-        return authService.login(request);
+        var response = authService.login(request);
+        return ResponseEntity.ok(ApiResponse.success("User logged in successfully", response));
     }
+
+    // Purpose:
+    // Receive refresh token
+    // Validate refresh token
+    // Issue new access token
+    @PostMapping("/refresh-token")
+    public ResponseEntity<ApiResponse<RefreshTokenResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        System.out.println("REFRESH JWT/Token ENDPOINT HIT");
+        var response = authService.refreshToken(request);
+        return ResponseEntity.ok(ApiResponse.success("Token refreshed successfully", response));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<LogoutResponse>> logout(@Valid @RequestBody LogoutRequest request) {
+
+       var response = authService.logout(request);
+        return ResponseEntity.ok(ApiResponse.success("User Logged-out successfully", response));
+    }
+
 }

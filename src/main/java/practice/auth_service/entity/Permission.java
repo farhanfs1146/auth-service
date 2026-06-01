@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
-@Table(name = "permissions", schema = "auth_db")
+@Table(name = "permissions")
 @Getter
 @Setter
 @NoArgsConstructor
