@@ -44,29 +44,45 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse changePassword(String username, UpdatedPasswordRequest request) {
+
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
-                        new ValidationException("User not found")
+                        new ValidationException("User not found with username: " + username)
                 );
 
         // Here we should hash the new password before saving
-        // For simplicity, we are directly setting the new password
+        // For simplicity, we are directly setting the new password.
+
         // In production, always hash passwords using a strong algorithm like BCrypt
-        //user.setPasswordHash(request.getNewPassword());
+        // user.setPasswordHash(request.getNewPassword()); // simply saving not hashing
 
         // the above line will hash the new password before saving it to the database.
         // but there is no validation of previous/current password, you can add that as well if needed.
         // like validate username & current password to validate then update new password.
 
         // **************************
-        boolean passwordMatches =
+        boolean oldPasswordMatches =
                 passwordEncoder.matches(
                         request.getOldPassword(),
                         user.getPasswordHash()
                 );
 
-        if (!passwordMatches) {
+        // check if both old password user entered is bot matching the existing password.
+        // then notify that you entered incorrect old password.
+        if (!oldPasswordMatches) {
             throw new ValidationException("Invalid Old Password");
+        }
+
+        // if both old hashed password and new password matching/same.
+        // then notify user that new password must be different from old.
+        boolean newPasswordMatching =
+                passwordEncoder.matches(
+                        request.getNewPassword(),
+                        user.getPasswordHash()
+                );
+
+        if (newPasswordMatching) {
+            throw new ValidationException("New password must be different from current password");
         }
 
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));

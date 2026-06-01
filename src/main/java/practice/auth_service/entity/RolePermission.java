@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "role_permissions", schema = "auth_db")
+@Table(name = "role_permissions")
 @Getter
 @Setter
 @NoArgsConstructor

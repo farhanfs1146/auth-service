@@ -21,11 +21,16 @@ public class JwtService {
     // Token expiration time
     // 1000 = 1 second
     // 60 * 60 * 1000 = 1 hour
-     private static final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 60;
+    // private static final long ACCESS_TOKEN_EXPIRATION = 1000L * 60 * 60; // 1 hour for now.
+
+    private static final long ACCESS_TOKEN_EXPIRATION = 1000L * 60 * 5; // 5 minutes for now.
 
     // Token expiration time now
     // for quick testing we can set it to 30 seconds
     // private static final long ACCESS_TOKEN_EXPIRATION = 1000 * 30;
+
+    // now are working on refresh token concept as well to refresh the access token after it expires.
+    private static final long REFRESH_TOKEN_EXPIRATION = 1000L * 60 * 60 * 24 * 7; // 7 days validity.
 
     // Generate signing key object
     private Key getSigningKey() {
@@ -33,6 +38,27 @@ public class JwtService {
         // Keys.hmacShaKeyFor()
         // converts string secret into secure cryptographic key
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+    }
+
+    // updated method to add refresh JWT/Token after access JWT/Token expiration.
+    // Why Separate Method?
+    // because generateToken() is for access token which has shorter expiration time, while generateRefreshToken() is for refresh token which has longer expiration time,
+    // so we can keep them separate for better clarity and maintainability.
+    public String generateRefreshToken(String username) {
+
+        Date now = new Date();
+
+        Date expiryDate = new Date(now.getTime() + REFRESH_TOKEN_EXPIRATION);
+
+        return Jwts.builder()
+                .subject(username)
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(
+                        getSigningKey(),
+                        SignatureAlgorithm.HS256
+                )
+                .compact();
     }
 
     // Generate JWT token
@@ -153,6 +179,27 @@ public class JwtService {
         return false;
     }
 
+    // to validate refresh JWT token
+    public boolean isRefreshTokenValid(String token) {
+
+        try {
+
+            Jwts.parser()
+
+                    .verifyWith((SecretKey) getSigningKey())
+
+                    .build()
+
+                    .parseSignedClaims(token);
+
+            return true;
+
+        } catch (JwtException ex) {
+
+            return false;
+        }
+    }
+
     private boolean isTokenExpired(String token) {
 
         Date expirationDate = Jwts.parser()
@@ -180,5 +227,6 @@ public class JwtService {
     // It Checks:
     // Is expiration time older than current time?
     // If yes: token expired else token valid.
+
 
 }

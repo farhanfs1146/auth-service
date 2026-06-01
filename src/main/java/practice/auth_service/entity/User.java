@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
-@Table(name = "users", schema = "auth_db")
+@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor

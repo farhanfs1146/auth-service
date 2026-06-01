@@ -4,14 +4,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import practice.auth_service.dto.request.LoginRequest;
+import practice.auth_service.dto.request.LogoutRequest;
+import practice.auth_service.dto.request.RefreshTokenRequest;
 import practice.auth_service.dto.request.RegisterRequest;
 import practice.auth_service.dto.response.AuthResponse;
+import practice.auth_service.dto.response.LogoutResponse;
+import practice.auth_service.dto.response.RefreshTokenResponse;
 import practice.auth_service.dto.response.UserResponse;
 import practice.auth_service.entity.User;
 import practice.auth_service.exception.ValidationException;
 import practice.auth_service.repository.UserRepository;
 import practice.auth_service.security.jwt.JwtService;
 import practice.auth_service.service.AuthService;
+import practice.auth_service.service.RefreshTokenService;
 
 import java.time.LocalDateTime;
 
@@ -27,6 +32,10 @@ public class AuthServiceImpl implements AuthService {
 
     // JWT Service Injection
     private final JwtService jwtService;
+
+    // for refresh tokens/JWTs store in database.
+    private final RefreshTokenService refreshTokenService;
+
 
     @Override
     public UserResponse register(RegisterRequest request) {
@@ -118,17 +127,145 @@ public class AuthServiceImpl implements AuthService {
         //   ↓
         // Return token to client
 
-        String accessToken =
-                jwtService.generateToken(user.getUsername());
+        String accessToken = jwtService.generateToken(user.getUsername());
 
+        // now adding the refresh token/JWT feature as well.
+        String refreshToken = jwtService.generateRefreshToken(user.getUsername());
+
+        // as we moved to enterprise level, we should store refresh tokens in database to manage them like revoke, expire, etc.
+        refreshTokenService.createRefreshToken(user, refreshToken);
+
+        // Now login response will return real refresh tokens.
         return AuthResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken("TEMP_REFRESH_TOKEN")
+                .refreshToken(refreshToken)
+                .expiresAt(null) // very soon we will use the exact expiration time of current JWT.
                 .tokenType("Bearer")
                 .build();
     }
 
-    
+    // *********************** Problem Without Refresh Token *********************
+    // Suppose: Access token is valid for 15 minutes, after that user need to log-in again to get new access token.
+    // This is not good user experience, so we use refresh token which is valid for longer time like 7 days, so user can get new access token without login again until refresh token expires.
+    // Example: ACCESS_TOKEN_EXPIRATION = 1 hour
+
+    // Flow: (Without Refresh Token)
+    // User Login
+    //    ↓
+    // Access Token Generated
+    //    ↓
+    // User Uses APIs
+    //    ↓
+    // 1 Hour Passed
+    //    ↓
+    // Token Expired
+    //    ↓
+    // 401 Unauthorized
+    //    ↓
+    // User Must Log in Again
+
+    // Bad user experience.
+    //
+    // Imagine:
+    // HRMS Dashboard open
+    // User working 4 hours
+    // Token expires every hour
+    // User would repeatedly log in.
+    // Not practical.
+
+    // Refresh Token Solution
+    //
+    // Instead:
+    // User Login
+    //    ↓
+    // Access Token + Refresh Token Generated
+    //    ↓
+    // User Uses APIs
+    //    ↓
+    // 1 Hour Passed
+    //    ↓
+    // Access Token Expired
+    //    ↓
+    // User Calls Refresh Endpoint with Refresh Token
+    //    ↓
+    // If Refresh Token Valid, New Access Token Issued
+    //    ↓
+    // User Continues Using APIs without Re-Logging in
+
+    // Simply means,
+    // Login
+    // ↓
+    // Access Token (15 min)
+    // Refresh Token (7 days)
+
+    // Server:
+    // Validate Refresh Token
+    //      ↓
+    // Generate New Access Token
+    //      ↓
+    // Return New Access Token
+
+    // Response:
+    //
+    //{
+    //   "accessToken":"new_token"
+    //}
+
+    // User never notices.
+    // No login screen.
+
+    @Override
+    public RefreshTokenResponse refreshToken(RefreshTokenRequest request) {
+
+        String refreshToken = request.getRefreshToken();
+
+        // Validate refresh token
+        if (!jwtService.isRefreshTokenValid(refreshToken)) {
+
+            throw new ValidationException("Invalid refresh token");
+        }
+
+        refreshTokenService.validateRefreshToken(refreshToken);
+
+        // Extract username
+        String username = jwtService.extractUsername(refreshToken);
+
+        // Verify user still exists
+        User user =
+                userRepository.findByUsername(username)
+                        .orElseThrow(() ->
+                                new ValidationException(
+                                        "User not found"
+                                )
+                        );
+
+        // Generate new access token
+        String newAccessToken =
+                jwtService.generateToken(
+                        user.getUsername()
+                );
+
+        return RefreshTokenResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
+
+    @Override
+    public LogoutResponse logout(LogoutRequest request) {
+
+        refreshTokenService.revokeRefreshToken(
+                request.getRefreshToken()
+        );
+
+        return LogoutResponse.builder()
+                .username(jwtService.extractUsername(request.getRefreshToken()))
+                .build();
+
+    }
+
+
+
     // helping methods.
     private UserResponse mapToResponse(User user) {
         return UserResponse.builder()

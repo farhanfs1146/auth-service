@@ -54,6 +54,7 @@ public class SecurityConfig {
                 // | --------------------------- | ------------------------ |
                 // | AuthenticationEntryPoint    | handles auth failures    |
                 // | Custom security responses   | professional APIs        |
+
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 )
@@ -64,7 +65,18 @@ public class SecurityConfig {
                         // Public APIs
                         .requestMatchers(
                                 "/api/v1/auth/register",
-                                "/api/v1/auth/login"
+                                "/api/v1/auth/login",
+                                // we also need to add swagger apis to access
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/swagger-ui/index.html",
+                                "/api/v1/auth/refresh-token",
+                                "/api/v1/auth/logout"
                         ).permitAll()
 
                         // Everything else protected, means you have to pass Valid JWT token to access other endpoints.
